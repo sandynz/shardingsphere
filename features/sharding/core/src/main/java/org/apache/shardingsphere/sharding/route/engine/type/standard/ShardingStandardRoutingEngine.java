@@ -17,15 +17,14 @@
 
 package org.apache.shardingsphere.sharding.route.engine.type.standard;
 
-import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
 import org.apache.shardingsphere.infra.datanode.DataNode;
+import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
 import org.apache.shardingsphere.infra.hint.HintManager;
 import org.apache.shardingsphere.infra.hint.HintValueContext;
 import org.apache.shardingsphere.infra.route.context.RouteContext;
 import org.apache.shardingsphere.infra.route.context.RouteMapper;
 import org.apache.shardingsphere.infra.route.context.RouteUnit;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.HintShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.api.config.strategy.sharding.ShardingStrategyConfiguration;
 import org.apache.shardingsphere.sharding.exception.algorithm.sharding.MismatchedShardingDataSourceRouteInfoException;
@@ -61,7 +60,7 @@ public final class ShardingStandardRoutingEngine implements ShardingRouteEngine 
     
     private final ShardingConditions shardingConditions;
     
-    private final SQLStatementContext sqlStatementContext;
+    private final Collection<String> allTableNamesInSQL;
     
     private final ConfigurationProperties props;
     
@@ -69,11 +68,11 @@ public final class ShardingStandardRoutingEngine implements ShardingRouteEngine 
     
     private final HintValueContext hintValueContext;
     
-    public ShardingStandardRoutingEngine(final String logicTableName, final ShardingConditions shardingConditions, final SQLStatementContext sqlStatementContext,
+    public ShardingStandardRoutingEngine(final String logicTableName, final ShardingConditions shardingConditions, final Collection<String> allTableNamesInSQL,
                                          final HintValueContext hintValueContext, final ConfigurationProperties props) {
         this.logicTableName = logicTableName;
         this.shardingConditions = shardingConditions;
-        this.sqlStatementContext = sqlStatementContext;
+        this.allTableNamesInSQL = allTableNamesInSQL;
         this.props = props;
         this.hintValueContext = hintValueContext;
     }
@@ -110,8 +109,7 @@ public final class ShardingStandardRoutingEngine implements ShardingRouteEngine 
     }
     
     private boolean isRoutingBySQLHint() {
-        Collection<String> tableNames = sqlStatementContext.getTablesContext().getTableNames();
-        for (String each : tableNames) {
+        for (String each : allTableNamesInSQL) {
             if (hintValueContext.containsHintShardingValue(each)) {
                 return true;
             }
@@ -200,8 +198,7 @@ public final class ShardingStandardRoutingEngine implements ShardingRouteEngine 
     
     private List<ShardingConditionValue> getDatabaseShardingValuesFromSQLHint() {
         Collection<Comparable<?>> shardingValues = new LinkedList<>();
-        Collection<String> tableNames = sqlStatementContext.getTablesContext().getTableNames();
-        for (String each : tableNames) {
+        for (String each : allTableNamesInSQL) {
             if (each.equals(logicTableName) && hintValueContext.containsHintShardingDatabaseValue(each)) {
                 shardingValues.addAll(hintValueContext.getHintShardingDatabaseValue(each));
             }
@@ -218,8 +215,7 @@ public final class ShardingStandardRoutingEngine implements ShardingRouteEngine 
     
     private List<ShardingConditionValue> getTableShardingValuesFromSQLHint() {
         Collection<Comparable<?>> shardingValues = new LinkedList<>();
-        Collection<String> tableNames = sqlStatementContext.getTablesContext().getTableNames();
-        for (String each : tableNames) {
+        for (String each : allTableNamesInSQL) {
             if (each.equals(logicTableName) && hintValueContext.containsHintShardingTableValue(each)) {
                 shardingValues.addAll(hintValueContext.getHintShardingTableValue(each));
             }

@@ -103,7 +103,7 @@ public final class ShardingInsertStatementValidator extends ShardingDMLStatement
                 .map(OnDuplicateKeyColumnsSegment::getColumns).orElse(Collections.emptyList());
         Optional<ShardingConditions> onDuplicateKeyShardingConditions = createShardingConditions(sqlStatementContext, shardingRule, assignments, params);
         Optional<RouteContext> onDuplicateKeyRouteContext = onDuplicateKeyShardingConditions.map(optional -> new ShardingStandardRoutingEngine(tableName, optional,
-                sqlStatementContext, hintValueContext, props).route(shardingRule));
+                sqlStatementContext.getTablesContext().getTableNames(), hintValueContext, props).route(shardingRule));
         if (onDuplicateKeyRouteContext.isPresent() && !isSameRouteContext(routeContext, onDuplicateKeyRouteContext.get())) {
             throw new UnsupportedUpdatingShardingValueException(tableName);
         }

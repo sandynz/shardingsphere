@@ -58,7 +58,8 @@ public final class ShardingComplexRoutingEngine implements ShardingRouteEngine {
             Optional<TableRule> tableRule = shardingRule.findTableRule(each);
             if (tableRule.isPresent()) {
                 if (!bindingTableNames.contains(each)) {
-                    routeContexts.add(new ShardingStandardRoutingEngine(tableRule.get().getLogicTable(), shardingConditions, sqlStatementContext, hintValueContext, props).route(shardingRule));
+                    routeContexts.add(new ShardingStandardRoutingEngine(tableRule.get().getLogicTable(), shardingConditions,
+                            sqlStatementContext.getTablesContext().getTableNames(), hintValueContext, props).route(shardingRule));
                 }
                 shardingRule.findBindingTableRule(each).ifPresent(optional -> bindingTableNames.addAll(optional.getTableRules().keySet()));
             }

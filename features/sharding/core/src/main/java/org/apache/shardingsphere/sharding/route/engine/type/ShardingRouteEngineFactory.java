@@ -148,7 +148,8 @@ public final class ShardingRouteEngineFactory {
         Collection<String> logicTableNames = shardingRule.getShardingLogicTableNames(tableNames);
         boolean allBindingTables = logicTableNames.size() > 1 && shardingRule.isAllBindingTables(database, sqlStatementContext, logicTableNames);
         if (isShardingStandardQuery(shardingRule, logicTableNames, allBindingTables)) {
-            return new ShardingStandardRoutingEngine(getLogicTableName(shardingConditions, logicTableNames), shardingConditions, sqlStatementContext, hintValueContext, props);
+            return new ShardingStandardRoutingEngine(getLogicTableName(shardingConditions, logicTableNames), shardingConditions,
+                    sqlStatementContext.getTablesContext().getTableNames(), hintValueContext, props);
         }
         return new ShardingIgnoreRoutingEngine();
     }
@@ -224,7 +225,8 @@ public final class ShardingRouteEngineFactory {
                                                                          final ShardingConditions shardingConditions, final ConfigurationProperties props, final Collection<String> tableNames) {
         boolean allBindingTables = tableNames.size() > 1 && shardingRule.isAllBindingTables(database, sqlStatementContext, tableNames);
         if (isShardingStandardQuery(shardingRule, tableNames, allBindingTables)) {
-            return new ShardingStandardRoutingEngine(getLogicTableName(shardingConditions, tableNames), shardingConditions, sqlStatementContext, hintValueContext, props);
+            return new ShardingStandardRoutingEngine(getLogicTableName(shardingConditions, tableNames), shardingConditions,
+                    sqlStatementContext.getTablesContext().getTableNames(), hintValueContext, props);
         }
         // TODO config for cartesian set
         return new ShardingComplexRoutingEngine(shardingConditions, sqlStatementContext, hintValueContext, props, tableNames);

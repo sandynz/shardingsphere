@@ -54,8 +54,8 @@ public final class ShardingUpdateStatementValidator extends ShardingDMLStatement
         String tableName = sqlStatementContext.getTablesContext().getTableNames().iterator().next();
         UpdateStatement updateStatement = (UpdateStatement) sqlStatementContext.getSqlStatement();
         Optional<ShardingConditions> shardingConditions = createShardingConditions(sqlStatementContext, shardingRule, updateStatement.getSetAssignment().getAssignments(), params);
-        Optional<RouteContext> setAssignmentRouteContext = shardingConditions.map(optional -> new ShardingStandardRoutingEngine(tableName, optional, sqlStatementContext,
-                hintValueContext, props).route(shardingRule));
+        Optional<RouteContext> setAssignmentRouteContext = shardingConditions.map(optional -> new ShardingStandardRoutingEngine(tableName, optional,
+                sqlStatementContext.getTablesContext().getTableNames(), hintValueContext, props).route(shardingRule));
         if (setAssignmentRouteContext.isPresent() && !isSameRouteContext(routeContext, setAssignmentRouteContext.get())) {
             throw new UnsupportedUpdatingShardingValueException(tableName);
         }
