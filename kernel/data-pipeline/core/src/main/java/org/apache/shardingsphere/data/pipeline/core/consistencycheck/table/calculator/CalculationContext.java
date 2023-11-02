@@ -74,6 +74,15 @@ public final class CalculationContext implements AutoCloseable {
     }
     
     /**
+     * Get prepared statement.
+     *
+     * @return prepared statement.
+     */
+    public PreparedStatement getPreparedStatement() {
+        return preparedStatement.get();
+    }
+    
+    /**
      * Set result set.
      *
      * @param resultSet result set

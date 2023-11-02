@@ -26,6 +26,7 @@ import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.infra.database.core.spi.DatabaseTypedSPILoader;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,16 +64,33 @@ public final class PipelineImportSQLBuilder {
     public String buildInsertSQL(final String schemaName, final DataRecord dataRecord) {
         String sqlCacheKey = INSERT_SQL_CACHE_KEY_PREFIX + dataRecord.getTableName();
         if (null == sqlCache.getIfPresent(sqlCacheKey)) {
-            String insertMainClause = buildInsertMainClause(schemaName, dataRecord);
+            String insertMainClause = buildInsertMainClause(schemaName, dataRecord.getTableName(), dataRecord.getColumns());
             sqlCache.put(sqlCacheKey, dialectSQLBuilder.buildInsertOnDuplicateClause(dataRecord).map(optional -> insertMainClause + " " + optional).orElse(insertMainClause));
         }
         return sqlCache.getIfPresent(sqlCacheKey);
     }
     
-    private String buildInsertMainClause(final String schemaName, final DataRecord dataRecord) {
-        String columnsLiteral = dataRecord.getColumns().stream().map(each -> sqlSegmentBuilder.getEscapedIdentifier(each.getName())).collect(Collectors.joining(","));
-        String valuesLiteral = dataRecord.getColumns().stream().map(each -> "?").collect(Collectors.joining(","));
-        return String.format("INSERT INTO %s(%s) VALUES(%s)", sqlSegmentBuilder.getQualifiedTableName(schemaName, dataRecord.getTableName()), columnsLiteral, valuesLiteral);
+    /**
+     * Build insert SQL.
+     *
+     * @param schemaName schema name
+     * @param dataNodeText data node text
+     * @param dataRecord data record
+     * @return insert SQL
+     */
+    public String buildActualInsertSQL(final String schemaName, final String dataNodeText, final DataRecord dataRecord) {
+        String sqlCacheKey = INSERT_SQL_CACHE_KEY_PREFIX + dataNodeText;
+        if (null == sqlCache.getIfPresent(sqlCacheKey)) {
+            String insertMainClause = buildInsertMainClause(schemaName, dataRecord.getActualTableName(), dataRecord.getColumns());
+            sqlCache.put(sqlCacheKey, dialectSQLBuilder.buildInsertOnDuplicateClause(dataRecord).map(optional -> insertMainClause + " " + optional).orElse(insertMainClause));
+        }
+        return sqlCache.getIfPresent(sqlCacheKey);
+    }
+    
+    private String buildInsertMainClause(final String schemaName, final String tableName, final List<Column> columns) {
+        String columnsLiteral = columns.stream().map(each -> sqlSegmentBuilder.getEscapedIdentifier(each.getName())).collect(Collectors.joining(","));
+        String valuesLiteral = columns.stream().map(each -> "?").collect(Collectors.joining(","));
+        return String.format("INSERT INTO %s(%s) VALUES(%s)", sqlSegmentBuilder.getQualifiedTableName(schemaName, tableName), columnsLiteral, valuesLiteral);
     }
     
     /**
