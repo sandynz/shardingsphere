@@ -57,10 +57,6 @@ jobs:
     name: Detect Changes and Generate Matrix
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    outputs:
-      matrix: ${{ steps.generate-matrix.outputs.matrix }}
-      has-jobs: ${{ steps.generate-matrix.outputs.has-jobs }}
-      need-proxy-image: ${{ steps.generate-matrix.outputs.need-proxy-image }}
     steps:
       - uses: actions/checkout@v6.0.1
       - id: filter
@@ -109,6 +105,16 @@ jobs:
             --arg pom_changes            "$FILTER_POM_CHANGES" \
             '$ARGS.named')
           bash .github/workflows/resources/scripts/generate-e2e-sql-matrix.sh "$filters"
+      - name: Print outputs
+        run: |
+          echo "Generated Matrix:\n${{ steps.generate.outputs.matrix }}"
+          echo "Filter JSON:\n${{ steps.filter.outputs.filter-json }}"
+          echo "Has Jobs: ${{ steps.generate.outputs.has-jobs }}"
+          echo "Need Proxy Image: ${{ steps.check-proxy.outputs.need-proxy-image }}"
+    outputs:
+      matrix: ${{ steps.generate-matrix.outputs.matrix }}
+      has-jobs: ${{ steps.generate-matrix.outputs.has-jobs }}
+      need-proxy-image: ${{ steps.generate-matrix.outputs.need-proxy-image }}
 
   build-e2e-image:
     name: Build E2E Image
